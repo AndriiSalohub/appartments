@@ -18,11 +18,11 @@ export default factories.createCoreController(
           );
         }
 
-        const result = await strapi
+        const { results } = await strapi
           .service("api::appartment.appartment")
-          .find({ ctx, user });
+          .find({ user });
 
-        return { data: result };
+        return { data: results };
       } catch (error) {
         strapi.log.error("Controller error in apartment find:", error);
 
@@ -37,6 +37,42 @@ export default factories.createCoreController(
         return ctx.internalServerError(
           "Server error while fetching apartments"
         );
+      }
+    },
+
+    async findOne(ctx: Context) {
+      try {
+        const user = ctx.state.user;
+
+        if (!user) {
+          return ctx.unauthorized(
+            "You must be authenticated to access this endpoint"
+          );
+        }
+
+        const { id } = ctx.params;
+
+        const result = await strapi
+          .service("api::appartment.appartment")
+          .findOne(id, { user });
+
+        return { data: result };
+      } catch (error) {
+        strapi.log.error("Controller error in apartment findOne:", error);
+
+        if (error.message === "Insufficient permissions") {
+          return ctx.forbidden("You don't have enough permissions!");
+        }
+
+        if (error.message === "Invalid user role") {
+          return ctx.badRequest("Invalid user role");
+        }
+
+        if (error.message === "Apartment not found") {
+          return ctx.notFound("Apartment not found or access denied");
+        }
+
+        return ctx.internalServerError("Server error while fetching apartment");
       }
     },
   })
