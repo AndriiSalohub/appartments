@@ -18,5 +18,14 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: "POST",
+      path: "/appartments/:id/rent",
+      handler: "api::appartment.appartment.rentAppartment",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

@@ -142,5 +142,49 @@ export default factories.createCoreController(
         );
       }
     },
+
+    async rentAppartment(ctx: any) {
+      try {
+        const user = ctx.state.user;
+        if (!user) {
+          return ctx.unauthorized(
+            "You must be authenticated to rent an apartment"
+          );
+        }
+
+        const { id } = ctx.params;
+        const { startDate, endDate } = ctx.request.body;
+
+        if (!startDate || !endDate) {
+          return ctx.badRequest("startDate and endDate are required");
+        }
+
+        const { results } = await strapi
+          .service("api::appartment.appartment")
+          .rentAppartment({ user, appartmentId: id, startDate, endDate });
+
+        return { data: results };
+      } catch (error) {
+        strapi.log.error(
+          "Controller error in apartment rentAppartment:",
+          error
+        );
+        if (error.message === "Insufficient permissions") {
+          return ctx.forbidden("You don't have enough permissions!");
+        }
+        if (error.message === "Invalid user role") {
+          return ctx.badRequest("Invalid user role");
+        }
+        if (error.message === "Apartment not found") {
+          return ctx.notFound("Apartment not found");
+        }
+        if (error.message === "Apartment already rented") {
+          return ctx.badRequest(
+            "Apartment is already rented for the selected period"
+          );
+        }
+        return ctx.internalServerError("Server error while renting apartment");
+      }
+    },
   })
 );

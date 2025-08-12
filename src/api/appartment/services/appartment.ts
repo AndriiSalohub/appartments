@@ -20,6 +20,13 @@ interface FindAvailableParams {
   endDate: Date;
 }
 
+interface RentAppartmentProps {
+  user: StrapiUser;
+  appartmentId: string;
+  startDate: Date;
+  endDate: Date;
+}
+
 export default factories.createCoreService(
   "api::appartment.appartment",
   ({ strapi }) => ({
@@ -249,6 +256,61 @@ export default factories.createCoreService(
         return { results: entities };
       } catch (error) {
         strapi.log.error("Service error in apartment findRented:", error);
+        throw error;
+      }
+    },
+
+    async rentAppartment({
+      user,
+      appartmentId,
+      startDate,
+      endDate,
+    }: RentAppartmentProps) {
+      try {
+        const roleName = user.role?.name;
+        if (!roleName) {
+          throw new Error("Invalid user role");
+        }
+
+        if (roleName !== "Authenticated" && roleName !== "authenticated") {
+          throw new Error("Insufficient permissions");
+        }
+
+        const apartment = await strapi.entityService.findOne(
+          "api::appartment.appartment",
+          appartmentId,
+          {
+            populate: ["rent_records"],
+          }
+        );
+
+        if (!apartment) {
+          throw new Error("Apartment not found");
+        }
+
+        const hasConflict = apartment.rent_records.some((rent) => {
+          return startDate <= rent.end_date && endDate >= rent.start_date;
+        });
+
+        if (hasConflict) {
+          throw new Error("Apartment already rented");
+        }
+
+        const newRentRecord = await strapi.entityService.create(
+          "api::rent-record.rent-record",
+          {
+            data: {
+              start_date: startDate,
+              end_date: endDate,
+              appartment: appartmentId,
+              renter: user.id,
+            },
+          }
+        );
+
+        return { results: newRentRecord };
+      } catch (error) {
+        strapi.log.error("Service error in apartment rentAppartment:", error);
         throw error;
       }
     },
