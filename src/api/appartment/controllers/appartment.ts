@@ -114,5 +114,33 @@ export default factories.createCoreController(
         );
       }
     },
+
+    async findRented(ctx) {
+      try {
+        const user = ctx.state.user;
+        if (!user) {
+          return ctx.unauthorized(
+            "You must be authenticated to access this endpoint"
+          );
+        }
+
+        const { results } = await strapi
+          .service("api::appartment.appartment")
+          .findRented({ user });
+
+        return { data: results };
+      } catch (error) {
+        strapi.log.error("Controller error in apartment findRented:", error);
+        if (error.message === "Insufficient permissions") {
+          return ctx.forbidden("You don't have enough permissions!");
+        }
+        if (error.message === "Invalid user role") {
+          return ctx.badRequest("Invalid user role");
+        }
+        return ctx.internalServerError(
+          "Server error while fetching rented apartments"
+        );
+      }
+    },
   })
 );

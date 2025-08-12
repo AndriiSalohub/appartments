@@ -201,5 +201,56 @@ export default factories.createCoreService(
         throw error;
       }
     },
+
+    async findRented({ user }: { user: StrapiUser }) {
+      try {
+        const roleName = user.role?.name;
+        if (!roleName) {
+          throw new Error("Invalid user role");
+        }
+
+        let queryParams = {};
+
+        if (roleName === "Authenticated" || roleName === "authenticated") {
+          console.log("Authenticated");
+          queryParams = {
+            filters: {
+              rent_records: {
+                renter: {
+                  id: user.id,
+                },
+              },
+            },
+            populate: {
+              owner: {
+                fields: ["username"],
+              },
+              rent_records: {
+                fields: ["start_date", "end_date"],
+                populate: {
+                  renter: {
+                    fields: ["username"],
+                  },
+                },
+              },
+            },
+          };
+        } else {
+          throw new Error("Insufficient permissions");
+        }
+
+        const entities = await strapi.entityService.findMany(
+          "api::appartment.appartment",
+          {
+            ...queryParams,
+          }
+        );
+
+        return { results: entities };
+      } catch (error) {
+        strapi.log.error("Service error in apartment findRented:", error);
+        throw error;
+      }
+    },
   })
 );

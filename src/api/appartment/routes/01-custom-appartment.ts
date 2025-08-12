@@ -9,5 +9,14 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/appartments/rented",
+      handler: "api::appartment.appartment.findRented",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
