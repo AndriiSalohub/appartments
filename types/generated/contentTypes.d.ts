@@ -362,6 +362,90 @@ export interface AdminUser extends Schema.CollectionType {
   };
 }
 
+export interface ApiAppartmentAppartment extends Schema.CollectionType {
+  collectionName: 'appartments';
+  info: {
+    displayName: 'Appartment';
+    pluralName: 'appartments';
+    singularName: 'appartment';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Attribute.String & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::appartment.appartment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    description: Attribute.Text;
+    owner: Attribute.Relation<
+      'api::appartment.appartment',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    publishedAt: Attribute.DateTime;
+    rent_records: Attribute.Relation<
+      'api::appartment.appartment',
+      'oneToMany',
+      'api::rent-record.rent-record'
+    >;
+    title: Attribute.String & Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::appartment.appartment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiRentRecordRentRecord extends Schema.CollectionType {
+  collectionName: 'rent_records';
+  info: {
+    description: '';
+    displayName: 'Rent Record';
+    pluralName: 'rent-records';
+    singularName: 'rent-record';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    appartment: Attribute.Relation<
+      'api::rent-record.rent-record',
+      'manyToOne',
+      'api::appartment.appartment'
+    >;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::rent-record.rent-record',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    end_date: Attribute.Date & Attribute.Required;
+    publishedAt: Attribute.DateTime;
+    renter: Attribute.Relation<
+      'api::rent-record.rent-record',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    start_date: Attribute.Date & Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::rent-record.rent-record',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease extends Schema.CollectionType {
   collectionName: 'strapi_releases';
   info: {
@@ -745,6 +829,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
     timestamps: true;
   };
   attributes: {
+    appartments: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::appartment.appartment'
+    >;
     blocked: Attribute.Boolean & Attribute.DefaultTo<false>;
     confirmationToken: Attribute.String & Attribute.Private;
     confirmed: Attribute.Boolean & Attribute.DefaultTo<false>;
@@ -766,6 +855,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
         minLength: 6;
       }>;
     provider: Attribute.String;
+    rent_records: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::rent-record.rent-record'
+    >;
     resetPasswordToken: Attribute.String & Attribute.Private;
     role: Attribute.Relation<
       'plugin::users-permissions.user',
@@ -798,6 +892,8 @@ declare module '@strapi/types' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::appartment.appartment': ApiAppartmentAppartment;
+      'api::rent-record.rent-record': ApiRentRecordRentRecord;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

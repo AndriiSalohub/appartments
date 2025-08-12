@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "appartments",
+  "info": {
+    "singularName": "appartment",
+    "pluralName": "appartments",
+    "displayName": "Appartment"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "address": {
+      "type": "string",
+      "required": true
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "appartments"
+    },
+    "rent_records": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::rent-record.rent-record",
+      "mappedBy": "appartment"
+    }
+  }
+}

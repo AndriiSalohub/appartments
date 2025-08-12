@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rent_records",
+  "info": {
+    "singularName": "rent-record",
+    "pluralName": "rent-records",
+    "displayName": "Rent Record",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "start_date": {
+      "type": "date",
+      "required": true
+    },
+    "end_date": {
+      "type": "date",
+      "required": true
+    },
+    "renter": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "rent_records"
+    },
+    "appartment": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::appartment.appartment",
+      "inversedBy": "rent_records"
+    }
+  }
+}
