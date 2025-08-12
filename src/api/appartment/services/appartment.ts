@@ -314,5 +314,60 @@ export default factories.createCoreService(
         throw error;
       }
     },
+
+    async delete(appartmentId: string, { user }: { user: StrapiUser }) {
+      try {
+        const roleName = user.role?.name;
+
+        if (!roleName) {
+          throw new Error("Invalid user role");
+        }
+
+        if (roleName === "Admin" || roleName === "admin") {
+          console.log("Admin");
+
+          const appartment = await strapi.entityService.findOne(
+            "api::appartment.appartment",
+            appartmentId,
+            {
+              populate: ["rent_records"],
+            }
+          );
+
+          if (!appartment) {
+            throw new Error("Apartment not found");
+          }
+
+          const hasRent = appartment.rent_records.some((record) => {
+            const now = new Date();
+            const start = new Date(record.start_date);
+            const end = new Date(record.end_date);
+
+            const isActive = start <= now && (!end || now <= end);
+            const isPlanned = start > now;
+
+            return isActive || isPlanned;
+          });
+
+          if (hasRent) {
+            throw new Error(
+              "Cannot delete apartment with active or planned rent records"
+            );
+          }
+
+          const deletedEntity = await strapi.entityService.delete(
+            "api::appartment.appartment",
+            appartmentId
+          );
+
+          return deletedEntity;
+        } else {
+          throw new Error("Insufficient permissions");
+        }
+      } catch (error) {
+        strapi.log.error("Service error in apartment delete:", error);
+        throw error;
+      }
+    },
   })
 );

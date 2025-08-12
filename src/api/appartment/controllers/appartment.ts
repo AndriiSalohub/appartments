@@ -52,6 +52,10 @@ export default factories.createCoreController(
 
         const { id } = ctx.params;
 
+        if (!id) {
+          return ctx.badRequest("Apartment ID is required");
+        }
+
         const result = await strapi
           .service("api::appartment.appartment")
           .findOne(id, { user });
@@ -134,9 +138,11 @@ export default factories.createCoreController(
         if (error.message === "Insufficient permissions") {
           return ctx.forbidden("You don't have enough permissions!");
         }
+
         if (error.message === "Invalid user role") {
           return ctx.badRequest("Invalid user role");
         }
+
         return ctx.internalServerError(
           "Server error while fetching rented apartments"
         );
@@ -153,6 +159,11 @@ export default factories.createCoreController(
         }
 
         const { id } = ctx.params;
+
+        if (!id) {
+          return ctx.badRequest("Apartment ID is required");
+        }
+
         const { startDate, endDate } = ctx.request.body;
 
         if (!startDate || !endDate) {
@@ -172,18 +183,74 @@ export default factories.createCoreController(
         if (error.message === "Insufficient permissions") {
           return ctx.forbidden("You don't have enough permissions!");
         }
+
         if (error.message === "Invalid user role") {
           return ctx.badRequest("Invalid user role");
         }
+
         if (error.message === "Apartment not found") {
           return ctx.notFound("Apartment not found");
         }
+
         if (error.message === "Apartment already rented") {
           return ctx.badRequest(
             "Apartment is already rented for the selected period"
           );
         }
+
         return ctx.internalServerError("Server error while renting apartment");
+      }
+    },
+
+    async delete(ctx: Context) {
+      try {
+        const user = ctx.state.user;
+
+        if (!user) {
+          return ctx.unauthorized(
+            "You must be authenticated to delete an apartment"
+          );
+        }
+
+        const { id } = ctx.params;
+
+        if (!id) {
+          return ctx.badRequest("Apartment ID is required");
+        }
+
+        const deletedEntity = await strapi
+          .service("api::appartment.appartment")
+          .delete(id, { user });
+
+        return ctx.send({
+          message: "Apartment deleted successfully",
+          data: deletedEntity,
+        });
+      } catch (error) {
+        strapi.log.error("Controller error in apartment delete:", error);
+
+        if (error.message === "Insufficient permissions") {
+          return ctx.forbidden("You don't have enough permissions!");
+        }
+
+        if (error.message === "Invalid user role") {
+          return ctx.badRequest("Invalid user role");
+        }
+
+        if (error.message === "Apartment not found") {
+          return ctx.notFound("Apartment not found");
+        }
+
+        if (
+          error.message ===
+          "Cannot delete apartment with active or planned rent records"
+        ) {
+          return ctx.badRequest(
+            "Cannot delete apartment with active or planned rent records"
+          );
+        }
+
+        return ctx.internalServerError("Failed to delete apartment");
       }
     },
   })
